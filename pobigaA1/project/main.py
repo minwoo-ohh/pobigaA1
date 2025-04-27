@@ -17,6 +17,4 @@ if __name__ == "__main__":
     threading.Thread(target=start_audio_server).start()
 
     # TTS 우선순위 큐 처리 루프
-    threading.Thread(target=.
-                     
-                     ).start()
+    threading.Thread(target=start_tts_output_loop).start()
