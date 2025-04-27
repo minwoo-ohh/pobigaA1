@@ -18,3 +18,5 @@ if __name__ == "__main__":
 
     # TTS 우선순위 큐 처리 루프
     threading.Thread(target=start_tts_output_loop).start()
+    
+    ###
