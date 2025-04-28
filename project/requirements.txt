@@ -8,8 +8,6 @@ ultralytics  # YOLOv8
 timm==0.9.12  # For DPT, MobileVLM compatibility
 
 # Transformers and VLM related
-transformers
-sentencepiece
 transformers==4.33.1
 tokenizers==0.13.3
 sentencepiece==0.1.99
@@ -22,9 +20,10 @@ numpy==1.25.0
 pillow
 opencv-python
 scipy
+imageio
 
 # Audio processing
-gTTS
+gTTs
 pydub
 simpleaudio
 googletrans==4.0.0-rc1
@@ -33,6 +32,8 @@ googletrans==4.0.0-rc1
 gradio
 fastapi
 uvicorn
+flask
+requests
 
 # Optional: fast attention (flash-attn)
 # If installation fails, project should still run without it.
