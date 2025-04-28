@@ -3,7 +3,7 @@ import cv2
 import time
 from datetime import datetime
 
-FRAME_DIR = "./storage/frames"
+FRAME_DIR = "storage/frames"
 FRAME_KEEP_SEC = 1  # 1분 유지
 os.makedirs(FRAME_DIR, exist_ok=True)
 
