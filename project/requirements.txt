@@ -1,0 +1,40 @@
+# Deep Learning core
+torch==2.0.1+cu118
+torchvision==0.15.2+cu118
+--index-url https://download.pytorch.org/whl/cu118
+
+# Vision models
+ultralytics  # YOLOv8
+timm==0.9.12  # For DPT, MobileVLM compatibility
+
+# Transformers and VLM related
+transformers
+sentencepiece
+transformers==4.33.1
+tokenizers==0.13.3
+sentencepiece==0.1.99
+accelerate==0.21.0
+bitsandbytes==0.41.0
+einops==0.6.1
+
+# Basic utilities
+numpy==1.25.0
+pillow
+opencv-python
+scipy
+
+# Audio processing
+gtts
+gTTS
+pydub
+simpleaudio
+googletrans==4.0.0-rc1
+
+# Web server / demo UI
+gradio
+fastapi
+uvicorn
+
+# Optional: fast attention (flash-attn)
+# If installation fails, project should still run without it.
+flash-attn==2.3.2
