@@ -1,32 +1,27 @@
-# # models/curb_detector.py
+import numpy as np
+# from services.output_queue import add_to_queue
 
-# import numpy as np
-# import cv2
-
-# def detect_curbs(depth_result: dict):
+# def process_obstacles(yolo_result: dict, depth_result: dict):
 #     """
-#     뎁스맵을 이용해서 턱(curbs)이 있는지 감지하는 함수
+#     YOLO + DepthMap을 기반으로 장애물 위험 판단
 
-#     Args:
-#         depth_result (dict): run_depth에서 반환된 결과. {"depth_map": np.array}
-
-#     Returns:
-#         bool 또는 dict: 턱이 감지되었는지 여부, 또는 턱 위치 정보
 #     """
-#     depth_map = depth_result.get("depth_map")
-#     if depth_map is None:
-#         return
+import cv2
+def detect_curbs(roi_depth_result: dict, frame: np.ndarray):
+    """#
+    YOLO 결과를 받아 프레임에 박스를 그리고 화면에 출력
 
-#     # ROI 영역 선택 (예: 하단 중앙 영역만 분석)
-#     h, w = depth_map.shape
-#     roi = depth_map[int(h*0.75):, int(w*0.4):int(w*0.6)]  # 하단 중앙
+    Args:
+        yolo_result (dict): {"objects": [{"label": str, "bbox": [x1, y1, x2, y2]}, ...]}
+        frame (np.ndarray): 원본 이미지 프레임 (OpenCV BGR)
+    """
+  # 여기서 화면에 보여준다
+    resize_scale = 1  # (50% 크기로 축소), 0.3으로 하면 더 작게
+    resized_frame = cv2.resize(frame, None, fx=resize_scale, fy=resize_scale)
 
-#     # 깊이 변화가 급격한 부분 찾기
-#     edges = cv2.Sobel(roi, cv2.CV_64F, 1, 0, ksize=5)  # x축 방향 변화
-#     variation = np.std(edges)
-
-#     if variation > 20:  # 임계값은 실험적으로 조정
-#         print("[CURB] 턱 감지됨!")
-#         return True
-#     else:
-#         return False
+    # ROI Depth Map 출력
+    if roi_depth_result is not None:
+        norm_roi_depth = cv2.normalize(roi_depth_result, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+        color_roi_depth = cv2.applyColorMap(norm_roi_depth, cv2.COLORMAP_MAGMA)
+        resized_roi_depth = cv2.resize(color_roi_depth, None, fx=resize_scale, fy=resize_scale)
+        cv2.imshow('ROI Depth Map', resized_roi_depth)

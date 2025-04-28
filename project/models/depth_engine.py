@@ -1,40 +1,38 @@
-# import torch
-# import cv2
-# import numpy as np
-# from torchvision.transforms import Compose
-# from midas.dpt_depth import DPTDepthModel
-# from midas.transforms import Resize, NormalizeImage, PrepareForNet
+import torch
+import cv2
+import numpy as np
+from PIL import Image
+from transformers import DPTFeatureExtractor, DPTForDepthEstimation
 
-# # GPU 설정
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Depth 모델 로드 (처음 1회만)
+DEPTH_MODEL_PATH = "Intel/dpt-hybrid-midas"
 
-# # 모델 초기화
-# model = DPTDepthModel(backbone="vitb_rn50_384", non_negative=True)
-# model.load_state_dict(torch.load("weights/dpt_hybrid.pt", map_location=device))
-# model.to(device)
-# model.eval()
+depth_extractor = DPTFeatureExtractor.from_pretrained(DEPTH_MODEL_PATH)
+depth_model = DPTForDepthEstimation.from_pretrained(DEPTH_MODEL_PATH)
+depth_model.to("cuda")
+depth_model.eval()
 
-# # 입력 전처리
-# transform = Compose([
-#     Resize(384, 384, resize_target=None, keep_aspect_ratio=True),
-#     NormalizeImage(mean=[0.485, 0.456, 0.406],
-#                    std=[0.229, 0.224, 0.225]),
-#     PrepareForNet()
-# ])
+def run_depth(frame):
+    """
+    Depth 모델을 이용해 Depth map 예측 수행
 
-# def run_depth(frame):
-#     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-#     img_input = transform({"image": img})["image"]
-#     img_input = torch.from_numpy(img_input).unsqueeze(0).to(device)
+    Args:
+        frame (np.ndarray): 입력 이미지 (OpenCV BGR 이미지)
 
-#     with torch.no_grad():
-#         prediction = model.forward(img_input)
-#         prediction = torch.nn.functional.interpolate(
-#             prediction.unsqueeze(1),
-#             size=img.shape[:2],
-#             mode="bicubic",
-#             align_corners=False,
-#         ).squeeze()
+    Returns:
+        np.ndarray: 예측된 Depth map (2D float32 array)
+    """
+    image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+    inputs = depth_extractor(images=image, return_tensors="pt").to("cuda")
 
-#     depth_np = prediction.cpu().numpy()
-#     return {"depth_map": depth_np}
+    with torch.no_grad():
+        outputs = depth_model(**inputs)
+        depth = outputs.predicted_depth
+        depth = torch.nn.functional.interpolate(
+            depth.unsqueeze(1),
+            size=frame.shape[:2],
+            mode="bicubic",
+            align_corners=False
+        ).squeeze().cpu().numpy()
+
+    return depth
