@@ -24,7 +24,6 @@ opencv-python
 scipy
 
 # Audio processing
-gtts
 gTTS
 pydub
 simpleaudio
