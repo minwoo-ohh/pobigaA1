@@ -34,5 +34,15 @@ def run_depth(frame):
             mode="bicubic",
             align_corners=False
         ).squeeze().cpu().numpy()
+     # depth shape: (h, w)
+    h, w = depth.shape
 
+    if h < 640:
+        pad_total = 640 - h
+        pad_top = pad_total // 2
+        pad_bottom = pad_total - pad_top
+
+        # 위, 아래에 0 padding 추가
+        depth = np.pad(depth, ((pad_top, pad_bottom), (0, 0)), mode='constant', constant_values=0)
+        
     return depth

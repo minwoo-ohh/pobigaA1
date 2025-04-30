@@ -16,7 +16,7 @@ def detect_curbs(roi_depth_result: dict, frame: np.ndarray):
         frame (np.ndarray): 원본 이미지 프레임 (OpenCV BGR)
     """
   # 여기서 화면에 보여준다
-    resize_scale = 1  # (50% 크기로 축소), 0.3으로 하면 더 작게
+    resize_scale = 0.2  # (50% 크기로 축소), 0.3으로 하면 더 작게
     resized_frame = cv2.resize(frame, None, fx=resize_scale, fy=resize_scale)
 
     # ROI Depth Map 출력

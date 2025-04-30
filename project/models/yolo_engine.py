@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 
 # 모델 로드 (처음 1회만)
-WEIGHTS_PATH = "/home/piai/ai/runs/detect/train3/weights/best.pt"
+WEIGHTS_PATH = "yolov8m.pt"
 model = YOLO(WEIGHTS_PATH).to("cuda")
 model.fuse()
 model.model = model.model.half()
