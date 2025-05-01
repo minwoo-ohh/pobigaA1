@@ -59,8 +59,27 @@ def process_obstacles(yolo_result: dict, frame: np.ndarray):
             if prev:
                 dx, dy = cx - prev[0], cy - prev[1]
                 dist = np.sqrt(dx**2 + dy**2)
+
                 if dist > 2:
-                    cv2.arrowedLine(frame, prev, center, (0, 0, 255), 10, tipLength=0.5)
+                    # 기본 설정값
+                    scale = 3.0
+                    min_len = 25  # 최소 화살표 길이
+                    max_len = 100  # 최대 화살표 길이
+
+                    # 방향 벡터 정규화
+                    norm = np.sqrt(dx**2 + dy**2)
+                    dx_n, dy_n = dx / norm, dy / norm
+
+                    # 최종 화살표 길이 결정
+                    arrow_len = min(max(dist * scale, min_len), max_len)
+
+                    new_prev = (
+                        int(cx - dx_n * arrow_len),
+                        int(cy - dy_n * arrow_len)
+                    )
+
+                    cv2.arrowedLine(frame, new_prev, center, (0, 0, 255), 10, tipLength=0.3)
+
             prev_positions[obj_id] = center
 
         # 박스 + 라벨

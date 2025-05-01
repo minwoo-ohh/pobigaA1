@@ -63,7 +63,7 @@ def letterbox_image(image, target_size=(640, 640), color=(0,0,0)):
     return canvas
 
 def process_video_stream():
-    video_path = 'test/video1.mp4'
+    video_path = '/home/piai/ai_p/front.mp4'
     cap = cv2.VideoCapture(video_path)
 
     if not cap.isOpened():
