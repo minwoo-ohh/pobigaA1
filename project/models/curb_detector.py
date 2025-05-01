@@ -25,3 +25,4 @@ def detect_curbs(roi_depth_result: dict, frame: np.ndarray):
         color_roi_depth = cv2.applyColorMap(norm_roi_depth, cv2.COLORMAP_MAGMA)
         resized_roi_depth = cv2.resize(color_roi_depth, None, fx=resize_scale, fy=resize_scale)
         cv2.imshow('ROI Depth Map', resized_roi_depth)
+        
