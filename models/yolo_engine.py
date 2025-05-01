@@ -35,7 +35,7 @@ def run_yolo(frame):
             objects.append({
                 "label": label,
                 "bbox": [x1, y1, x2, y2],
-                "id": obj_id  # ✅ 반드시 추가해야 함!!
+                "id": obj_id  # 반드시 추가해야 함!!
             })
 
     return {"objects": objects}

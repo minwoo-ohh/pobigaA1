@@ -1,11 +1,22 @@
 import cv2
 import numpy as np
+from models.tts_engine import enqueue_tts
 
-# 이전 중심 좌표, 히스토리, 경고 기록
 prev_positions = {}
 prev_x_history = {}
 warned_ids = set()
 prev_widths = {}
+LABEL_KOR = {
+    "person": "사람",
+    "car": "차",
+    "truck": "트럭",
+    "bus": "버스",
+    "bicycle": "자전거",
+    "motorcycle": "오토바이",
+    "bench": "벤치",
+    # 필요한 만큼 추가 가능
+}
+
 def is_bbox_in_roi(bbox, roi_polygon):
     x1, y1, x2, y2 = bbox
     corners = [(x1, y1), (x2, y1), (x2, y2), (x1, y2)]
@@ -89,32 +100,44 @@ def process_obstacles(yolo_result: dict, frame: np.ndarray):
 
         # 중심 x 히스토리 저장
         bbox_width = x2 - x1
-        prev_w = prev_widths.get(obj_id, bbox_width)
-        width_change = bbox_width - prev_w
-        prev_widths[obj_id] = bbox_width
+
+        # 너비 히스토리 저장 (새 방식)
+        width_history = prev_widths.get(obj_id, [])
+        width_history.append(bbox_width)
+        if len(width_history) > 10:
+            width_history.pop(0)
+        prev_widths[obj_id] = width_history
+
+        avg_width = sum(width_history) / len(width_history)
+        if bbox_width < avg_width * 0.8:
+            continue
+
+        # 중심 x좌표 히스토리 저장 (기존 유지)
         history = prev_x_history.get(obj_id, [])
         history.append(cx)
         if len(history) > 3:
             history.pop(0)
         prev_x_history[obj_id] = history
-        if width_change < -5:
-            continue
+
         # 경고 판단
         if in_roi and obj_id not in warned_ids and len(history) >= 3:
+            if label not in ["person", "car", "truck","bicycle","motorcycle","bus","bench"]:
+                continue
             direction = None
             slope = compute_slope(history)
 
             if top_left_x <= cx <= top_right_x:
                 direction = "정면"
             elif cx < top_left_x and slope > 5:  # 왼쪽 → 중앙으로 접근 중
-                direction = "왼쪽 방향"
+                direction = "왼쪽"
             elif cx > top_right_x and slope < -5:  # 오른쪽 → 중앙으로 접근 중
-                direction = "오른쪽 방향"
+                direction = "오른쪽"
 
             if direction:
-                print(f"{label},{obj_id},{direction},{slope},true")
+                label_kor = LABEL_KOR.get(label, label)  # 못 찾으면 원래 이름 유지
+                print(f"{label_kor},{obj_id},{direction},{slope},true")
                 warned_ids.add(obj_id)
-                # 추후: generate_warning(f"{direction}에 {label} 있음")
+                enqueue_tts(f"{direction}에 {label_kor} 있어", priority=0)
 
         # ROI 밖이면 추적 제거
         if not in_roi:

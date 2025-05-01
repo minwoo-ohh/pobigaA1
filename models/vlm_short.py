@@ -2,7 +2,7 @@
 
 import sys
 import os
-
+from models.tts_engine import enqueue_tts
 # sys.path에 ShortVLM 루트 경로 추가
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -36,7 +36,7 @@ def run_once(image_path: str, kor_command: str):
 
     # Step 3: 영→한 번역
     translated_back = translator_en2ko.translate(result)
-
+    enqueue_tts(translated_back)
     # # Step 4: TTS 저장 및 재생
     # tts = gTTS(translated_back, lang='ko')
     # tts.save("output.mp3")
@@ -56,4 +56,4 @@ def run_once(image_path: str, kor_command: str):
 
 if __name__ == "__main__":
     # 예시 실행
-    run_once("test/test_images/test1.jpg", "앞에 뭐 있어?")
+    run_once("test/test_images/test2.jpg", "앞에 뭐 있어?")
