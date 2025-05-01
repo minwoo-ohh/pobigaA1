@@ -5,15 +5,9 @@ import os
 import json
 import time
 from PIL import Image
-from transformers import pipeline
-# from deep_translator import GoogleTranslator
-# from gtts import gTTS
 import openai
-from dotenv import load_dotenv
 
-# 경로 설정
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../mobilevlm_official")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
 # 현재 파일 기준으로 상위 폴더 → test/test_images 경로 계산
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -22,7 +16,6 @@ image_dir = os.path.join(base_dir, "test", "test_images")
 from mobilevlm_runtime import MobileVLMRuntime
 
 # ========== 환경 설정 ==========
-load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # VLM 모델 초기화
@@ -53,11 +46,11 @@ def run_once(image_path: str, kor_command: str):
     total_time = end_total - start_total
 
     # Step 5: 출력
-    print(f"\n🖼️ Image: {image_path}")
-    print(f"🔤 English Prompt: {prompt}")
-    print(f"📢 Output (EN): {result}")
-    print(f"⏱️ Inference Time: {duration:.2f} seconds (Model only)")
-    print(f"⏱️ Total Time: {total_time:.2f} seconds (Translation + Model)")
+    print(f"\n Image: {image_path}")
+    print(f" English Prompt: {prompt}")
+    print(f" Output (EN): {result}")
+    print(f" Inference Time: {duration:.2f} seconds (Model only)")
+    print(f" Total Time: {total_time:.2f} seconds (Translation + Model)")
 
     # Step 6: JSONL 저장
     json_data = {
@@ -80,7 +73,7 @@ def generate_diary_and_tts():
             descriptions.append(data["output_en"])
 
     if not descriptions:
-        print("⚠️ 설명이 존재하지 않습니다. 일기를 생성할 수 없습니다.")
+        print("설명이 존재하지 않습니다. 일기를 생성할 수 없습니다.")
         return
 
     joined_desc = " ".join(descriptions)
@@ -88,7 +81,7 @@ def generate_diary_and_tts():
 The following are brief English descriptions generated from images. 
 Please write a warm and emotional **Korean diary** that reflects a day for a visually impaired person, based on these scenes.
 
-📌 Instructions:
+ Instructions:
 - Write exactly **7 sentences**, each on a new line.
 - Use **first-person expressions** such as "나는", "오늘은", "산책을 하다가", etc.
 - Ensure the diary flows **in natural timeline order**, as if reflecting on a full day from morning to night.
@@ -97,10 +90,10 @@ Please write a warm and emotional **Korean diary** that reflects a day for a vis
 - Avoid repeating words or describing similar things more than once.
 - In the **last (7th) sentence**, clearly finish the diary by **summarizing the day emotionally** or **sharing a personal reflection**.
 
-🔍 Scene descriptions (in English):
+ Scene descriptions (in English):
 {joined_desc}
 
-✏️ Korean Diary:
+ Korean Diary:
 """
 
     print("\n📨 Requesting GPT for diary generation...")
@@ -116,15 +109,15 @@ Please write a warm and emotional **Korean diary** that reflects a day for a vis
     )
 
     diary_text = response.choices[0].message.content.strip()
-    print("\n📘 생성된 일기:\n", diary_text)
+    print("\n 생성된 일기:\n", diary_text)
 
     with open(diary_txt_path, "w", encoding="utf-8") as f:
         f.write(diary_text)
 
-    # print("\n🔉 Converting diary to MP3...")
+    # print("\n Converting diary to MP3...")
     # tts = gTTS(diary_text, lang='ko')
     # tts.save(diary_mp3_path)
-    # print(f"\n✅ MP3 저장 완료: {diary_mp3_path}")
+    # print(f"\n MP3 저장 완료: {diary_mp3_path}")
 
 # ========== 실행 ==========
 if __name__ == "__main__":

@@ -1,13 +1,9 @@
-# src/mobilevlm_runtime.py
-
 import sys
 import os
 import time
 import torch
 from PIL import Image
-
-# mobilevlm_official 폴더 추가
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../mobilevlm_official")))
+import config
 
 from mobilevlm_official.mobilevlm.model.mobilevlm import load_pretrained_model
 from mobilevlm_official.mobilevlm.constants import DEFAULT_IMAGE_TOKEN, IMAGE_TOKEN_INDEX

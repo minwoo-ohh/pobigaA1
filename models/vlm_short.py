@@ -1,21 +1,13 @@
-# models/vlm_short.py
-
 import sys
 import os
-from models.tts_engine import enqueue_tts
-# sys.path에 ShortVLM 루트 경로 추가
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# mobilevlm_official 폴더 추가
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../mobilevlm_official")))
+# config.py가 있는 루트 디렉토리를 sys.path에 추가
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
 from mobilevlm_runtime import MobileVLMRuntime
 from transformers import pipeline
 from deep_translator import GoogleTranslator
-from gtts import gTTS
 import time
-import os
-
 
 # 번역기 초기화 (1회만)
 translator_ko2en = pipeline("translation", model="Helsinki-NLP/opus-mt-ko-en")  # Hugging Face 파이프라인
@@ -36,7 +28,7 @@ def run_once(image_path: str, kor_command: str):
 
     # Step 3: 영→한 번역
     translated_back = translator_en2ko.translate(result)
-    enqueue_tts(translated_back)
+
     # # Step 4: TTS 저장 및 재생
     # tts = gTTS(translated_back, lang='ko')
     # tts.save("output.mp3")
@@ -46,13 +38,13 @@ def run_once(image_path: str, kor_command: str):
     total_time = end_total - start_total
 
     # Step 5: 출력
-    print(f"\n🖼️ Image: {image_path}")
-    print(f"🗣️ Korean Prompt: {kor_command}")
-    print(f"🔤 English Prompt: {prompt}")
-    print(f"📢 Output (EN): {result}")
-    print(f"📢 Output (KO): {translated_back}")
-    print(f"⏱️ Inference Time: {duration:.2f} seconds (Model only)")
-    print(f"⏱️ Total Time: {total_time:.2f} seconds (Translation + Model)")
+    print(f"\n Image: {image_path}")
+    print(f"Korean Prompt: {kor_command}")
+    print(f"English Prompt: {prompt}")
+    print(f"Output (EN): {result}")
+    print(f"Output (KO): {translated_back}")
+    print(f"Inference Time: {duration:.2f} seconds (Model only)")
+    print(f"Total Time: {total_time:.2f} seconds (Translation + Model)")
 
 if __name__ == "__main__":
     # 예시 실행
