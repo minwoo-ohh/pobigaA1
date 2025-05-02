@@ -4,16 +4,14 @@ import sys
 import os
 import json
 import time
+import threading
 from PIL import Image
 import openai
+import numpy as np
+import cv2
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
-
-# 현재 파일 기준으로 상위 폴더 → test/test_images 경로 계산
-base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-image_dir = os.path.join(base_dir, "test", "test_images")
-
-from mobilevlm_runtime import MobileVLMRuntime
+from models.mobilevlm_runtime import MobileVLMRuntime
+import models.shared_state as shared_state
 
 # ========== 환경 설정 ==========
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -22,39 +20,26 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 runtime = MobileVLMRuntime()
 
 # 결과 저장 경로
-jsonl_path = "../logs/vlm_long_log.jsonl"
-diary_txt_path = "../logs/diary_entry.txt"
-# diary_mp3_path = "/home/piai/AI_project/diary/diary_entry.mp3"
+jsonl_path = "logs/vlm_long_log.jsonl"
+diary_txt_path = "logs/diary_entry.txt"
 os.makedirs(os.path.dirname(jsonl_path), exist_ok=True)
 os.makedirs(os.path.dirname(diary_txt_path), exist_ok=True)
 
 # ========== 이미지 한 장 처리 함수 ==========
-def run_once(image_path: str, kor_command: str):
+def run_vlm(frame):
+    pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+    prompt = "Describe this image in one complete sentence."
     start_total = time.time()
 
-    prompt = f"Describe this image in one complete sentence."
-
-    # Step 2: VLM 추론
-    result, duration = runtime.run(image_path, prompt)
-
-    # # Step 4: TTS 저장 및 재생
-    # tts = gTTS(translated_back, lang='ko')
-    # tts.save("output.mp3")
-    # os.system("mpg123 output.mp3")
+    result, duration = runtime.run(pil_image, prompt)
 
     end_total = time.time()
     total_time = end_total - start_total
 
-    # Step 5: 출력
-    print(f"\n Image: {image_path}")
-    print(f" English Prompt: {prompt}")
-    print(f" Output (EN): {result}")
-    print(f" Inference Time: {duration:.2f} seconds (Model only)")
-    print(f" Total Time: {total_time:.2f} seconds (Translation + Model)")
+    print(f"[VLM] {prompt} → {result} ({round(total_time,2)}s)")
 
-    # Step 6: JSONL 저장
     json_data = {
-        "image_path": image_path,
         "output_en": result,
         "inference_time": round(duration, 2),
         "total_time": round(total_time, 2),
@@ -96,7 +81,7 @@ Please write a warm and emotional **Korean diary** that reflects a day for a vis
  Korean Diary:
 """
 
-    print("\n📨 Requesting GPT for diary generation...")
+    print("\n Requesting GPT for diary generation...")
 
     response = openai.ChatCompletion.create(
         model="gpt-4",
@@ -114,17 +99,35 @@ Please write a warm and emotional **Korean diary** that reflects a day for a vis
     with open(diary_txt_path, "w", encoding="utf-8") as f:
         f.write(diary_text)
 
-    # print("\n Converting diary to MP3...")
-    # tts = gTTS(diary_text, lang='ko')
-    # tts.save(diary_mp3_path)
-    # print(f"\n MP3 저장 완료: {diary_mp3_path}")
+# ========== VLM 루프 ==========
+def start_vlm_long_loop(interval=5.0):
+    print(f"[VLM_LONG] 시작됨: {interval}초부터 실시간 프레임 추론")
+    
+    if overwrite:
+        print("[VLM_LONG] 기존 로그 파일 덮어쓰기 중...")
+        open("logs/vlm_long_log.jsonl", "w", encoding="utf-8").close()
+        open("logs/diary_entry.txt", "w", encoding="utf-8").close()
 
-# ========== 실행 ==========
-if __name__ == "__main__":
-    # image_dir = "../test/test_images"
-    for fname in sorted(os.listdir(image_dir)):
-        if fname.lower().endswith(".jpg"):
-            image_path = os.path.join(image_dir, fname)
-            run_once(image_path, "앞에 뭐 있어?")
+    last_infer_time = 0
 
-    generate_diary_and_tts()
+    while not shared_state.stop_event.is_set():
+        current_time = time.time()
+        elapsed = current_time - last_infer_time
+
+        with shared_state.latest_frame_lock:
+            frame = shared_state.latest_frame.copy() if shared_state.latest_frame is not None else None
+
+        if frame is not None and elapsed >= interval:
+            print(f"[VLM] 프레임 수신됨, 추론 시작 ({round(elapsed, 2)}s 이후)")
+            last_infer_time = time.time()
+            frame_copy = np.array(frame)
+
+            def run_and_log():
+                try:
+                    run_vlm(frame_copy)
+                except Exception as e:
+                    print(f"[VLM][ERROR] {e}")
+
+            threading.Thread(target=run_and_log, daemon=True).start()
+
+        time.sleep(0.05)

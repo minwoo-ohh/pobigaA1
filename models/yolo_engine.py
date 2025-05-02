@@ -23,7 +23,8 @@ def run_yolo(frame):
         stream=False,
         tracker="bytetrack.yaml",  # 중요!
         conf=0.3,
-        iou=0.6
+        iou=0.6,
+        verbose=False
     )
 
     objects = []

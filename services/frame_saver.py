@@ -20,7 +20,6 @@ def clean_old_frames():
         _, old_path = frame_log.pop(0)
         if os.path.exists(old_path):
             os.remove(old_path)
-            print(f"[CLEANUP] 삭제됨: {old_path}")
             
 last_saved_time = 0
 
