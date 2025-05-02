@@ -13,6 +13,10 @@ __pycache__/
 *.mp3
 *.txt
 
+# 저장된 프레임 이미지 (디렉토리는 유지)
+storage/frames/*
+!storage/frames/.gitkeep
+
 # Jupyter/VSCode 설정
 .ipynb_checkpoints/
 .vscode/

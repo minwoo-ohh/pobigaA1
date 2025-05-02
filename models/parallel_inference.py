@@ -1,3 +1,5 @@
+# models/parallel_inference.py
+
 import cv2
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor
@@ -5,9 +7,12 @@ from models.yolo_engine import run_yolo
 from models.depth_engine import run_depth
 from models.vlm_long import run_vlm
 from services.frame_saver import save_frame
+# from logs.log_vlm_output import log_vlm_output  # VLM 로그 저장
 from models.obstacle_reasoner import process_obstacles
 from models.curb_detector import detect_curbs
 import models.shared_state as shared_state
+# from services.gps_state import get_latest_gps
+import threading
 import threading
 import os
 
@@ -54,7 +59,7 @@ def process_video_stream():
 
     print("[VIDEO] 영상 처리 시작")
 
-    executor = ThreadPoolExecutor(max_workers=2)
+    executor = ThreadPoolExecutor(max_workers=4)
     vlm_frame_counter = 0
     VLM_INFER_INTERVAL = 300  # 5초 간격 (60fps 기준)
 
