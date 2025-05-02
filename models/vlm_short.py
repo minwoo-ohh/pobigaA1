@@ -48,4 +48,4 @@ def run_once(image_path: str, kor_command: str):
 
 if __name__ == "__main__":
     # 예시 실행
-    run_once("test/test_images/test2.jpg", "앞에 뭐 있어?")
+    run_once("test/test_images/test1.jpg", "앞에 뭐 있어?")
